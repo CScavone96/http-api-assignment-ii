@@ -19,9 +19,9 @@ const respond = (request, response, status, object, etag) => {
     response.writeHead(status, {
       'Content-Type': 'application/json',
     });
- 
-      response.write(JSON.stringify(object));
-      response.end();
+
+    response.write(JSON.stringify(object));
+    response.end();
   }
 };
 
@@ -121,14 +121,6 @@ const addUser = (request, response) => {
       response.end();
     }
   });
-};
-const notReal = (request, response, params) => {
-  const responseJSON = {
-    message: 'The page you are looking for was not found.',
-    id: 'notFound',
-  };
-    // if(newResults != oldResults){ load results }
-  return respond(request, response, 404, responseJSON, false);
 };
 
 
