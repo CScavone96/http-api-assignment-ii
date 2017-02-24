@@ -6,20 +6,157 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
   <script type="text/babel">
+const handleResponse = (xhr, type) => {
+      const content = document.querySelector("#content");
+      
+	  if(type == 'head'){		  
+		  switch(xhr.status) {
+			case 200: //success
+			  content.innerHTML = `<b>Success</b><br>`;
+			  break;
+			case 201: 
+			  content.innerHTML = `<b>Create</b><br>`;
+			  break;
+			case 204: 
+			  content.innerHTML = `<b>Updated (No Content)</b><br>`;
+			  break;  		
+			case 401: 
+			  content.innerHTML = `<b>Unauthorized Request</b><br>`;
+			  break;
+			case 403: 
+			  content.innerHTML = `<b>Forbidden Request</b><br>`;
+			  break;
+			case 400: //bad request 
+			  content.innerHTML = `<b>Bad Request</b><br>`;
+			  break;
+			case 404: //not found (requested resource does not exist)
+			  content.innerHTML = `<b>Resource Not Found</b><br>`;
+			  break;
+			case 500: 
+			  content.innerHTML = `<b>Internal Error</b><br>`;
+			  break;
+			default: //default other errors we are not handling in this example
+			  content.innerHTML = `<b>Not Implemented</b><br>`;
+		  }
+	  }
+	  if(type == 'get'){		  
+		  switch(xhr.status) {
+			case 200: //success
+			  content.innerHTML = `<b>Success</b><br>`;
+			  content.innerHTML += xhr.responseText;
+			  break;
+			case 201: 
+			  content.innerHTML = `<b>Create</b><br>`;
+			  content.innerHTML += "Message: ";
+			  content.innerHTML += JSON.parse(xhr.responseText)["message"];
+			  break;
+			case 204: 
+			  content.innerHTML = `<b>Modified</b><br>`;
+			  break;  		
+			case 401: 
+			  content.innerHTML = `<b>Unauthorized Request</b><br>`;
+			  content.innerHTML += "Message: ";
+			  content.innerHTML += JSON.parse(xhr.responseText)["message"];
+			  break;
+			case 403: 
+			  content.innerHTML = `<b>Forbidden Request</b><br>`;
+			  content.innerHTML += "Message: ";
+			  content.innerHTML += JSON.parse(xhr.responseText)["message"];
+			  break;
+			case 400: //bad request 
+			  content.innerHTML = `<b>Bad Request</b><br>`;
+			  content.innerHTML += "Message: ";
+			  content.innerHTML += JSON.parse(xhr.responseText)["message"];
+			  break;
+			case 404: //not found (requested resource does not exist)
+			  content.innerHTML = `<b>Resource Not Found</b><br>`;
+			  content.innerHTML += "Message: ";
+			  content.innerHTML += JSON.parse(xhr.responseText)["message"];
+			  break;
+			case 500: 
+			  content.innerHTML = `<b>Internal Error</b><br>`;
+			  content.innerHTML += "Message: ";
+			  content.innerHTML += JSON.parse(xhr.responseText)["message"];
+			  break;
+			default: //default other errors we are not handling in this example
+			  content.innerHTML = `<b>Not Implemented</b><br>`;
+			  content.innerHTML += "Message: ";
+			  content.innerHTML += JSON.parse(xhr.responseText)["message"];
+		  }
+	  }
+    };
+    
+    const sendAjax = (url, head) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      xhr.setRequestHeader ("Accept", head);
 
+      xhr.onload = () => handleResponse(xhr, head);
+
+      xhr.send();
+    }
+	
+	const postAjax = (url, head) => {
+      const xhr = new XMLHttpRequest();
+	  const name = document.querySelector("#nameField").value;
+	  const age = document.querySelector("#ageField").value;
+	  //if(name.length > 0 && age.length > 0 && age > 0){
+		  const params = "name=" + name + "&Age=" + age;
+		  xhr.open('POST', url);
+		  //xhr.setRequestHeader ("Accept", head);
+		  xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		  xhr.onload = () => handleResponse(xhr, head);
+		  xhr.send(params);
+		  //}
+    }
+	
+	const init = () => {
+	  const selector = document.querySelector("#urlField");
+	  const typeSelector = document.querySelector("#methodSelect");
+	  const typeName = typeSelector.options[typeSelector.selectedIndex].value;
+	  selector.onchange = getButton;
+	  typeSelector.onchange = getButton;
+	  getButton();
+	  getAddButton();
+	}
+	
+	const getAddButton = () => {
+	  var add = document.querySelector("#add");
+      const sendClone = add.cloneNode(true);
+      add.parentNode.replaceChild(sendClone, add);
+	  const addButton = document.querySelector("#add");
+      const callMethod = () => postAjax("/addUser", "get");
+      addButton.addEventListener('click', callMethod);
+	}
+	
+	const getButton = () => {
+	  var send = document.querySelector("#send");
+      const sendClone = send.cloneNode(true);
+      send.parentNode.replaceChild(sendClone, send);
+	  const sendButton = document.querySelector("#send");
+	  const selector = document.querySelector("#urlField");
+	  const pathName = selector.options[selector.selectedIndex].value;
+	  const typeSelector = document.querySelector("#methodSelect");
+	  const typeName = typeSelector.options[typeSelector.selectedIndex].value;
+      const callMethod = () => sendAjax(pathName, typeName);
+      sendButton.addEventListener('click', callMethod);
+	}
+
+    window.onload = init;
   </script>
 </head>
 <body>
   <section id="top">
     <h3>POST Status Code Tests</h3>
-    <form id="nameForm" action="/addUser" method="post">
+    <form id="nameForm">
       <label for="name">Name: </label>
       <input id="nameField" type="text" name="name" />
       <label for="age">Age: </label>
       <input id="ageField" type="number" name="age" min="0" max="100" step="1"/>
-      <input type="submit" value="Add User" />
     </form>
-    <form id="userForm" action="/getUsers" method="get">
+    <input id="add" type="submit" value="Add User" />
+	<!--<form id="userForm" action="/getUsers" method="get">!-->
+    <form id="userForm">
       <select id='urlField'>
         <option value='/getUsers'>/getUsers</option>
         <option value='/notReal'>/notReal</option>
@@ -28,8 +165,9 @@
         <option value="get">GET</option>
         <option value="head">HEAD</option>
       </select>
-      <input type="submit" value="Get User" />
+      <!--<input type="submit" value="Get User" id="send"/>!-->
     </form>
+    <button id="send">Send</button>
   </section>
   <section id="content">
   </section>
