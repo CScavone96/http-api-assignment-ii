@@ -15,7 +15,7 @@ const urlStruct = {
   '/unauthorized': unauthorized,
   '/internal': internal,
   '/notImplemented': notImplemented,
-  '/getUsers':getUsers,
+  '/getUsers': getUsers,
   '/addUser': addUser,
   notFound,
 };
